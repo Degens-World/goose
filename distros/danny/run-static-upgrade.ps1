@@ -3,12 +3,32 @@ param(
     [string]$ProjectDir,
 
     [Parameter(Mandatory = $true)]
-    [string]$ProjectName
+    [string]$ProjectName,
+
+    [string]$Description = "",
+
+    [string]$Model = "qwen3-coder:30b",
+
+    [string]$OllamaUrl = "http://localhost:11434",
+
+    [int]$CallTimeoutSecs = 240,
+
+    [int]$AgentTimeoutSecs = 1800,
+
+    [int]$MaxAttempts = 2,
+
+    [string]$AgentScript = "D:\Agent Heartbeat\ollama_agent.py"
 )
 
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$repoRoot = Resolve-Path (Join-Path $scriptDir "..\..")
-$recipe = Join-Path $repoRoot "workflow_recipes\danny_static_site_upgrade\recipe.yaml"
+$runner = Join-Path $scriptDir "run_static_upgrade.py"
 
-goose run --recipe $recipe --params "project_dir=$ProjectDir,project_name=$ProjectName"
-
+python $runner $ProjectDir `
+  --project-name $ProjectName `
+  --description $Description `
+  --model $Model `
+  --ollama-url $OllamaUrl `
+  --call-timeout-secs $CallTimeoutSecs `
+  --agent-timeout-secs $AgentTimeoutSecs `
+  --max-attempts $MaxAttempts `
+  --agent-script $AgentScript
