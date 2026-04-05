@@ -1,0 +1,44 @@
+version: 1.0.0
+title: "Danny Static Site Upgrade"
+description: "Audit and improve an existing static site until it clears Danny's quality bar"
+
+instructions: |
+  You are improving an existing static site for Danny Degen.
+
+  Step 1: Run the audit tool.
+
+  ```bash
+  python {{recipe_dir}}/danny_site_audit.py "{{project_dir}}" -o /tmp/danny_site_audit.md --json-out /tmp/danny_site_audit.json
+  ```
+
+  Step 2: Read the report and improve the project in place.
+
+  Requirements:
+  - Do not replace the project with a thin hero page.
+  - Keep it static HTML/CSS/JS with no build system.
+  - Add meaningful visible structure, stronger styling, and richer interactions.
+  - Keep working until the audit passes.
+
+  Step 3: Re-run the audit until it exits cleanly and reports PASS.
+
+  Step 4: Summarize:
+  - which files changed
+  - which quality issues were fixed
+  - whether the project should now be re-pushed and re-deployed
+
+prompt: improve the target static site until the Danny audit passes
+
+parameters:
+  - key: "project_dir"
+    input_type: string
+    requirement: required
+    description: "absolute path to the static site project directory"
+  - key: "project_name"
+    input_type: string
+    requirement: required
+    description: "project name for reporting"
+
+extensions:
+  - type: platform
+    name: developer
+

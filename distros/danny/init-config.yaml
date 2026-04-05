@@ -1,0 +1,5 @@
+# Applied on first run if no Goose config exists.
+GOOSE_PROVIDER: ollama
+GOOSE_MODEL: qwen3-coder:30b
+OLLAMA_HOST: http://localhost:11434
+
