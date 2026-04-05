@@ -9,6 +9,7 @@ import argparse
 import importlib.util
 import subprocess
 import sys
+from datetime import datetime
 from pathlib import Path
 
 
@@ -57,6 +58,17 @@ def run_agent(
     return ((proc.stdout or "") + (proc.stderr or "")).strip()
 
 
+def append_build_row(tasks_file: Path, project_name: str) -> str:
+    row = (
+        f"| {datetime.now().astimezone().isoformat(timespec='seconds')} "
+        f"| BUILD_COMPLETE: {project_name} | index.html, style.css, app.js, README.md, vercel.json |"
+    )
+    existing = tasks_file.read_text(encoding="utf-8", errors="replace") if tasks_file.exists() else ""
+    prefix = "" if not existing or existing.endswith("\n") else "\n"
+    tasks_file.write_text(existing + prefix + row + "\n", encoding="utf-8")
+    return row
+
+
 def build_prompt(project_name: str, project_dir: Path, description: str, issues: list[str], audit_markdown: str) -> str:
     issue_block = "\n".join(f"- {issue}" for issue in issues) if issues else "- create the required project files"
     build_mode = "rebuild and improve the existing site" if any(project_dir.iterdir()) else "build the site from scratch"
@@ -98,6 +110,7 @@ def main() -> int:
     parser.add_argument("--agent-timeout-secs", type=int, default=1800, help="Timeout for the full agent run")
     parser.add_argument("--max-attempts", type=int, default=2, help="Improvement attempts before giving up")
     parser.add_argument("--agent-script", default=str(DEFAULT_AGENT_SCRIPT), help="Path to ollama_agent.py")
+    parser.add_argument("--tasks-file", default="", help="Heartbeat markdown log to append BUILD_COMPLETE into on success")
     args = parser.parse_args()
 
     project_dir = Path(args.project_dir).resolve()
@@ -143,6 +156,9 @@ def main() -> int:
 
         report = audit_module.audit(project_dir)
         if report["status"] == "pass":
+            if args.tasks_file:
+                row = append_build_row(Path(args.tasks_file), args.project_name)
+                print(f"[danny-builder-tool] appended {row}")
             print(f"[danny-builder-tool] PASS after attempt {attempt}")
             print(audit_module.to_markdown(report))
             return 0
